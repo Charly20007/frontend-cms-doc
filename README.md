@@ -1,32 +1,40 @@
-# React + TypeScript + Vite
+# CMS – Dr. Juan Carlos Marcos Enriquez
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Panel de administración (React + Vite + Tailwind) para gestionar la web y su SEO a través de la API .NET (`backend-doc`).
 
-Currently, two official plugins are available:
+## Puesta en marcha
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+cp .env.example .env.local   # ajustar VITE_API_URL y VITE_WEB_URL si hace falta
+npm install
+npm run dev                  # http://localhost:5173
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+La API debe estar corriendo. Las credenciales de desarrollo están en la sección `AdminInicial`
+de `backend-doc/Surgeon.WebAPI/appsettings.Development.local.json`.
+
+## Módulos
+
+| Sección | Qué permite | Roles |
+|---|---|---|
+| Resumen | Citas del día, pendientes y **Salud SEO** (páginas con título o descripción faltante o demasiado largos) | Todos |
+| Agenda y citas | Ver solicitudes de la web y cambiar su estado | Todos |
+| Procedimientos | Crear/editar la página de cada procedimiento: datos, contenido (introducción, síntomas, pasos, recuperación, preguntas frecuentes) y SEO | Administrador, Cirujano |
+| Blog médico | Artículos (borrador, publicado o programado), categorías y SEO | Administrador, Cirujano |
+| Testimonios | Publicar/ocultar, editar y relacionar con un procedimiento | Administrador, Cirujano |
+| SEO y redirecciones | SEO de páginas fijas y redirecciones 301 | Administrador, Cirujano |
+| Datos del consultorio | Datos del doctor, contacto, redes, Search Console, Analytics, horarios y contraseña | Administrador, Cirujano |
+
+Al cambiar la URL (slug) de un procedimiento o artículo, la API crea automáticamente una redirección 301 desde la anterior.
+
+## Estructura
+
+```
+src/
+├── auth/          # Sesión (JWT en localStorage) y pantalla de login
+├── components/
+│   ├── seo/       # Editor SEO con vista previa de Google, campo de slug
+│   └── ui/        # Formularios, avisos, listas editables
+├── lib/           # Cliente API, tipos, enrutador por hash, utilidades SEO
+└── modulos/       # Una carpeta por sección del menú
+```
