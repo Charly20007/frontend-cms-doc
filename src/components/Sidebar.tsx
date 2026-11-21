@@ -1,9 +1,9 @@
 import React from 'react';
-import { LayoutDashboard, CalendarCheck, Scissors, MessageSquareQuote, ShieldCheck, LogOut, Sun, Moon, Newspaper, Search, Settings, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Scissors, MessageSquareQuote, ShieldCheck, LogOut, Sun, Moon, Newspaper, Search, Settings, ExternalLink, Scale } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { navegar, WEB_URL } from '../lib/router';
 
-export type Seccion = 'dashboard' | 'citas' | 'procedimientos' | 'blog' | 'testimonios' | 'seo' | 'configuracion';
+export type Seccion = 'dashboard' | 'citas' | 'procedimientos' | 'blog' | 'testimonios' | 'legales' | 'seo' | 'configuracion';
 
 interface SidebarProps {
   activa: Seccion;
@@ -32,6 +32,7 @@ const GRUPOS: { titulo: string; items: Item[] }[] = [
       { id: 'procedimientos', label: 'Procedimientos', icon: <Scissors className="w-5 h-5" />, soloContenido: true },
       { id: 'blog', label: 'Blog médico', icon: <Newspaper className="w-5 h-5" />, soloContenido: true },
       { id: 'testimonios', label: 'Testimonios', icon: <MessageSquareQuote className="w-5 h-5" />, soloContenido: true },
+      { id: 'legales', label: 'Páginas legales', icon: <Scale className="w-5 h-5" />, soloContenido: true },
     ],
   },
   {

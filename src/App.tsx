@@ -14,11 +14,13 @@ const ProcedimientoEditor = React.lazy(() => import('./modulos/procedimientos/Pr
 const BlogLista = React.lazy(() => import('./modulos/blog/BlogLista').then((m) => ({ default: m.BlogLista })));
 const ArticuloEditor = React.lazy(() => import('./modulos/blog/ArticuloEditor').then((m) => ({ default: m.ArticuloEditor })));
 const TestimoniosModulo = React.lazy(() => import('./modulos/testimonios/TestimoniosModulo').then((m) => ({ default: m.TestimoniosModulo })));
+const LegalesLista = React.lazy(() => import('./modulos/legales/LegalesModulo').then((m) => ({ default: m.LegalesLista })));
+const LegalEditor = React.lazy(() => import('./modulos/legales/LegalesModulo').then((m) => ({ default: m.LegalEditor })));
 const SeoModulo = React.lazy(() => import('./modulos/seo/SeoModulo').then((m) => ({ default: m.SeoModulo })));
 const ConfiguracionModulo = React.lazy(() => import('./modulos/configuracion/ConfiguracionModulo').then((m) => ({ default: m.ConfiguracionModulo })));
 
-const SECCIONES: Seccion[] = ['dashboard', 'citas', 'procedimientos', 'blog', 'testimonios', 'seo', 'configuracion'];
-const SOLO_CONTENIDO: Seccion[] = ['procedimientos', 'blog', 'testimonios', 'seo', 'configuracion'];
+const SECCIONES: Seccion[] = ['dashboard', 'citas', 'procedimientos', 'blog', 'testimonios', 'legales', 'seo', 'configuracion'];
+const SOLO_CONTENIDO: Seccion[] = ['procedimientos', 'blog', 'testimonios', 'legales', 'seo', 'configuracion'];
 
 function useTema() {
   const [oscuro, setOscuro] = useState<boolean>(() => {
@@ -58,6 +60,7 @@ const Contenido: React.FC = () => {
       case 'procedimientos': return idRuta ? <ProcedimientoEditor key={idRuta} id={id} /> : <ProcedimientosLista />;
       case 'blog': return idRuta ? <ArticuloEditor key={idRuta} id={id} /> : <BlogLista />;
       case 'testimonios': return <TestimoniosModulo />;
+      case 'legales': return idRuta ? <LegalEditor key={idRuta} clave={idRuta} /> : <LegalesLista />;
       case 'seo': return <SeoModulo />;
       case 'configuracion': return <ConfiguracionModulo />;
       default: return <Dashboard />;
