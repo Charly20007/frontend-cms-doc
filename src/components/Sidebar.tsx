@@ -53,7 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activa, darkMode, onToggleThem
 
   return (
     <aside className="w-64 bg-white dark:bg-navy-900/90 border-r border-slate-200 dark:border-white/10 flex flex-col justify-between h-screen sticky top-0 shrink-0 transition-colors shadow-sm z-20">
-      <div className="overflow-y-auto">
+      <div className="overflow-y-auto scroll-discreto">
         <div className="p-6 border-b border-slate-200 dark:border-white/10 flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-medical-500 to-blue-700 flex items-center justify-center font-bold text-white shadow-lg shadow-medical-500/20 shrink-0 text-xs">
             CMS
