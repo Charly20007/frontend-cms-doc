@@ -5,6 +5,7 @@ import { useDatos } from '../../lib/datos';
 import type { Cita } from '../../lib/tipos';
 import { Boton, EncabezadoPagina, MensajeError } from '../../components/ui/Formulario';
 import { useAvisos } from '../../components/ui/Avisos';
+import { useDialogos } from '../../components/ui/Dialogos';
 import { LoadingFallback } from '../../components/LoadingFallback';
 import { BloqueosPanel } from './BloqueosPanel';
 
@@ -13,6 +14,7 @@ type Filtro = 'proximas' | 'todas' | (typeof ESTADOS)[number];
 
 export const CitasModulo: React.FC = () => {
   const avisos = useAvisos();
+  const { confirmar } = useDialogos();
   const { datos, setDatos, cargando, error, recargar } = useDatos<Cita[]>('/api/citas');
   const [filtro, setFiltro] = useState<Filtro>('proximas');
   const [busqueda, setBusqueda] = useState('');
@@ -33,7 +35,7 @@ export const CitasModulo: React.FC = () => {
   }, [datos, filtro, busqueda]);
 
   const cambiarEstado = async (cita: Cita, estado: string) => {
-    if (estado === 'Cancelada' && !window.confirm(`¿Cancelar la cita de ${cita.pacienteNombreCompleto}?`)) return;
+    if (estado === 'Cancelada' && !(await confirmar({ titulo: `¿Cancelar la cita de ${cita.pacienteNombreCompleto}?`, mensaje: 'El turno quedará libre para otro paciente.', textoAceptar: 'Cancelar cita', textoCancelar: 'Volver', peligro: true }))) return;
     setActualizando(cita.id);
     try {
       const { data } = await api.put<{ estado: string; colorHex: string }>(`/api/citas/${cita.id}/estado`, { nuevoEstadoNombre: estado });

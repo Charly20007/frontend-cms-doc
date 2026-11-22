@@ -5,6 +5,7 @@ import { useDatos } from '../../lib/datos';
 import type { Bloqueo } from '../../lib/tipos';
 import { Boton, Campo, Panel } from '../../components/ui/Formulario';
 import { useAvisos } from '../../components/ui/Avisos';
+import { useDialogos } from '../../components/ui/Dialogos';
 
 const formato = (iso: string) =>
   new Date(iso).toLocaleString('es-PE', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -12,6 +13,7 @@ const formato = (iso: string) =>
 /** Bloqueos de agenda: en esos periodos la web no ofrece turnos. */
 export const BloqueosPanel: React.FC = () => {
   const avisos = useAvisos();
+  const { confirmar } = useDialogos();
   const { datos, recargar } = useDatos<Bloqueo[]>('/api/admin/agenda/bloqueos');
   const [abierto, setAbierto] = useState(false);
   const [diaCompleto, setDiaCompleto] = useState(true);
@@ -41,7 +43,7 @@ export const BloqueosPanel: React.FC = () => {
   };
 
   const eliminar = async (b: Bloqueo) => {
-    if (!window.confirm(`¿Quitar el bloqueo «${b.motivo}»? Esos turnos volverán a ofrecerse en la web.`)) return;
+    if (!(await confirmar({ titulo: `¿Quitar el bloqueo «${b.motivo}»?`, mensaje: 'Esos turnos volverán a ofrecerse en la web.', textoAceptar: 'Quitar bloqueo' }))) return;
     try {
       await api.delete(`/api/admin/agenda/bloqueos/${b.id}`);
       avisos.exito('Bloqueo eliminado.');

@@ -10,6 +10,7 @@ import { ListaEditable } from '../../components/ui/ListaEditable';
 import { SeoEditor } from '../../components/seo/SeoEditor';
 import { SlugInput } from '../../components/seo/SlugInput';
 import { useAvisos } from '../../components/ui/Avisos';
+import { useDialogos } from '../../components/ui/Dialogos';
 import { LoadingFallback } from '../../components/LoadingFallback';
 
 const VACIO: ServicioGuardar = {
@@ -41,6 +42,7 @@ const aFormulario = (s: ServicioDetalle): ServicioGuardar => ({
 
 export const ProcedimientoEditor: React.FC<{ id: number | null }> = ({ id }) => {
   const avisos = useAvisos();
+  const { confirmar } = useDialogos();
   const catalogos = useCatalogos();
   const [form, setForm] = useState<ServicioGuardar | null>(id ? null : VACIO);
   const [original, setOriginal] = useState<ServicioDetalle | null>(null);
@@ -68,8 +70,8 @@ export const ProcedimientoEditor: React.FC<{ id: number | null }> = ({ id }) => 
   if (!form) return <LoadingFallback texto="Cargando procedimiento..." />;
 
   const cambiar = (c: Partial<ServicioGuardar>) => { setForm({ ...form, ...c }); setSucio(true); };
-  const volver = () => {
-    if (sucio && !window.confirm('Hay cambios sin guardar. ¿Salir de todos modos?')) return;
+  const volver = async () => {
+    if (sucio && !(await confirmar({ titulo: 'Hay cambios sin guardar', mensaje: 'Si sales ahora, se perderán los cambios que hiciste.', textoAceptar: 'Salir sin guardar', textoCancelar: 'Seguir editando', peligro: true }))) return;
     navegar('procedimientos');
   };
 
@@ -111,7 +113,7 @@ export const ProcedimientoEditor: React.FC<{ id: number | null }> = ({ id }) => 
 
   const eliminar = async () => {
     if (!id || !original) return;
-    if (!window.confirm(`¿Eliminar «${original.nombre}»? Su página dejará de existir en la web.`)) return;
+    if (!(await confirmar({ titulo: `¿Eliminar «${original.nombre}»?`, mensaje: 'Su página dejará de existir en la web.', textoAceptar: 'Eliminar', peligro: true }))) return;
     try {
       await api.delete(`/api/admin/servicios/${id}`);
       invalidarCaches();

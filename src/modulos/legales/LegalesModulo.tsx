@@ -8,6 +8,7 @@ import type { PaginaLegal, PaginaLegalResumen, Seo } from '../../lib/tipos';
 import { Boton, Campo, EncabezadoPagina, Etiqueta, Interruptor, MensajeError, Panel } from '../../components/ui/Formulario';
 import { SeoEditor } from '../../components/seo/SeoEditor';
 import { useAvisos } from '../../components/ui/Avisos';
+import { useDialogos } from '../../components/ui/Dialogos';
 import { LoadingFallback } from '../../components/LoadingFallback';
 
 const AVISO_LEGAL = 'Estos textos son una base general. Revíselos con un asesor legal antes de publicar la web.';
@@ -40,6 +41,7 @@ export const LegalesLista: React.FC = () => {
 
 export const LegalEditor: React.FC<{ clave: string }> = ({ clave }) => {
   const avisos = useAvisos();
+  const { confirmar } = useDialogos();
   const [pagina, setPagina] = useState<PaginaLegal | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -76,7 +78,7 @@ export const LegalEditor: React.FC<{ clave: string }> = ({ clave }) => {
   return (
     <form onSubmit={guardar} className="space-y-6">
       <EncabezadoPagina
-        volver={() => { if (!sucio || window.confirm('Hay cambios sin guardar. ¿Salir de todos modos?')) navegar('legales'); }}
+        volver={() => { if (!sucio) navegar('legales'); else void confirmar({ titulo: 'Hay cambios sin guardar', mensaje: 'Si sales ahora, se perderán los cambios que hiciste.', textoAceptar: 'Salir sin guardar', textoCancelar: 'Seguir editando', peligro: true }).then((ok) => ok && navegar('legales')); }}
         titulo={pagina.titulo || 'Página legal'}
         descripcion={`Dirección fija en la web: ${pagina.ruta}`}
         acciones={

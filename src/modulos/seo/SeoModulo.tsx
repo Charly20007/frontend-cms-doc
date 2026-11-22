@@ -8,6 +8,7 @@ import { Boton, Campo, EncabezadoPagina, Etiqueta, Interruptor, MensajeError, Pa
 import { SeoEditor } from '../../components/seo/SeoEditor';
 import { revisarSeo } from '../../lib/seo';
 import { useAvisos } from '../../components/ui/Avisos';
+import { useDialogos } from '../../components/ui/Dialogos';
 import { LoadingFallback } from '../../components/LoadingFallback';
 
 export const SeoModulo: React.FC = () => {
@@ -104,6 +105,7 @@ const Redirecciones: React.FC = () => {
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [guardando, setGuardando] = useState(false);
   const avisos = useAvisos();
+  const { confirmar } = useDialogos();
 
   const guardar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +127,7 @@ const Redirecciones: React.FC = () => {
   };
 
   const eliminar = async (r: Redireccion) => {
-    if (!window.confirm(`¿Eliminar la redirección desde ${r.rutaOrigen}? Quien entre a esa dirección verá un error 404.`)) return;
+    if (!(await confirmar({ titulo: `¿Eliminar la redirección desde ${r.rutaOrigen}?`, mensaje: 'Quien entre a esa dirección verá un error 404.', textoAceptar: 'Eliminar', peligro: true }))) return;
     try {
       await api.delete(`/api/admin/seo/redirecciones/${r.id}`);
       avisos.exito('Redirección eliminada.');

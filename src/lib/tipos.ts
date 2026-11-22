@@ -99,6 +99,8 @@ export interface Articulo {
   tiempoLectura: number;
   vistas: number;
   publicadoEnWeb: boolean;
+  /** Se muestra en grande en el blog (solo uno a la vez) */
+  destacado: boolean;
   seo: Seo;
 }
 
@@ -143,6 +145,10 @@ export interface PaginaSeo {
   clave: string;
   ruta: string;
   nombrePagina: string;
+  /** Textos visibles; vacío = la web usa su texto por defecto */
+  titulo?: string | null;
+  descripcion?: string | null;
+  tituloSecundario?: string | null;
   seo: Seo;
   fechaModificacion: string;
 }

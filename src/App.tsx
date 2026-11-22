@@ -4,6 +4,7 @@ import { LoadingFallback } from './components/LoadingFallback';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { LoginPage } from './auth/LoginPage';
 import { AvisosProvider } from './components/ui/Avisos';
+import { DialogosProvider } from './components/ui/Dialogos';
 import { navegar, useRuta } from './lib/router';
 import { Dashboard } from './modulos/dashboard/Dashboard';
 
@@ -83,7 +84,9 @@ export function App() {
   return (
     <AuthProvider>
       <AvisosProvider>
-        <Contenido />
+        <DialogosProvider>
+          <Contenido />
+        </DialogosProvider>
       </AvisosProvider>
     </AuthProvider>
   );

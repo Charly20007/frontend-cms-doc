@@ -7,12 +7,14 @@ import { avisarCambioTestimonios } from '../../lib/pendientes';
 import type { Testimonio, TestimonioGuardar } from '../../lib/tipos';
 import { AreaTexto, Boton, Campo, EncabezadoPagina, Etiqueta, Interruptor, MensajeError, Panel, Selector } from '../../components/ui/Formulario';
 import { useAvisos } from '../../components/ui/Avisos';
+import { useDialogos } from '../../components/ui/Dialogos';
 import { LoadingFallback } from '../../components/LoadingFallback';
 
 const VACIO: TestimonioGuardar = { nombrePaciente: '', procedimiento: '', idServicioMedico: null, calificacionEstrellas: 5, comentario: '', aprobadoParaWeb: false, fechaTestimonio: null };
 
 export const TestimoniosModulo: React.FC = () => {
   const avisos = useAvisos();
+  const { confirmar } = useDialogos();
   const catalogos = useCatalogos();
   const { datos, cargando, error, recargar } = useDatos<Testimonio[]>('/api/admin/testimonios');
   const [form, setForm] = useState<TestimonioGuardar | null>(null);
@@ -93,7 +95,7 @@ export const TestimoniosModulo: React.FC = () => {
               </Boton>
               <Boton variante="fantasma" icono={<Pencil className="w-4 h-4" />} onClick={() => editar(t)}>Editar</Boton>
               <Boton variante="peligro" icono={<X className="w-4 h-4" />} onClick={() => {
-                if (window.confirm(`¿Rechazar el testimonio de ${t.nombrePaciente}? Se eliminará y no se publicará.`)) void accion(() => api.delete(`/api/admin/testimonios/${t.id}`), 'Testimonio rechazado.');
+                void confirmar({ titulo: `¿Rechazar el testimonio de ${t.nombrePaciente}?`, mensaje: 'Se eliminará y no se publicará en la web.', textoAceptar: 'Rechazar', peligro: true }).then((ok) => { if (ok) void accion(() => api.delete(`/api/admin/testimonios/${t.id}`), 'Testimonio rechazado.'); });
               }}>Rechazar</Boton>
             </>
           ) : (
@@ -103,7 +105,7 @@ export const TestimoniosModulo: React.FC = () => {
               </Boton>
               <Boton variante="fantasma" icono={<Pencil className="w-4 h-4" />} onClick={() => editar(t)}>Editar</Boton>
               <Boton variante="fantasma" icono={<Trash2 className="w-4 h-4" />} onClick={() => {
-                if (window.confirm(`¿Eliminar el testimonio de ${t.nombrePaciente}?`)) void accion(() => api.delete(`/api/admin/testimonios/${t.id}`), 'Testimonio eliminado.');
+                void confirmar({ titulo: `¿Eliminar el testimonio de ${t.nombrePaciente}?`, mensaje: 'Dejará de mostrarse en la web.', textoAceptar: 'Eliminar', peligro: true }).then((ok) => { if (ok) void accion(() => api.delete(`/api/admin/testimonios/${t.id}`), 'Testimonio eliminado.'); });
               }}>Eliminar</Boton>
             </>
           )}

@@ -9,6 +9,7 @@ import { AreaTexto, Boton, Campo, EncabezadoPagina, Interruptor, MensajeError, P
 import { SeoEditor } from '../../components/seo/SeoEditor';
 import { SlugInput } from '../../components/seo/SlugInput';
 import { useAvisos } from '../../components/ui/Avisos';
+import { useDialogos } from '../../components/ui/Dialogos';
 import { LoadingFallback } from '../../components/LoadingFallback';
 
 const VACIO: ArticuloGuardar = {
@@ -38,6 +39,7 @@ const ATAJOS: { texto: string; antes: string; despues: string }[] = [
 
 export const ArticuloEditor: React.FC<{ id: number | null }> = ({ id }) => {
   const avisos = useAvisos();
+  const { confirmar } = useDialogos();
   const catalogos = useCatalogos();
   const [form, setForm] = useState<ArticuloGuardar | null>(id ? null : VACIO);
   const [original, setOriginal] = useState<Articulo | null>(null);
@@ -65,8 +67,8 @@ export const ArticuloEditor: React.FC<{ id: number | null }> = ({ id }) => {
   if (!form) return <LoadingFallback texto="Cargando artículo..." />;
 
   const cambiar = (c: Partial<ArticuloGuardar>) => { setForm({ ...form, ...c }); setSucio(true); };
-  const volver = () => {
-    if (sucio && !window.confirm('Hay cambios sin guardar. ¿Salir de todos modos?')) return;
+  const volver = async () => {
+    if (sucio && !(await confirmar({ titulo: 'Hay cambios sin guardar', mensaje: 'Si sales ahora, se perderán los cambios que hiciste.', textoAceptar: 'Salir sin guardar', textoCancelar: 'Seguir editando', peligro: true }))) return;
     navegar('blog');
   };
 
@@ -115,7 +117,7 @@ export const ArticuloEditor: React.FC<{ id: number | null }> = ({ id }) => {
 
   const eliminar = async () => {
     if (!id || !original) return;
-    if (!window.confirm(`¿Eliminar el artículo «${original.titulo}»?`)) return;
+    if (!(await confirmar({ titulo: `¿Eliminar el artículo «${original.titulo}»?`, mensaje: 'Dejará de verse en la web. Si alguien entra a su dirección, verá un error 404.', textoAceptar: 'Eliminar', peligro: true }))) return;
     try {
       await api.delete(`/api/admin/blog/articulos/${id}`);
       setSucio(false);
