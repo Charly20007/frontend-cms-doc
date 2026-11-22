@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, ArrowUpRight, CalendarCheck, CheckCircle2, Clock, Newspaper, Scissors } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, CalendarCheck, CheckCircle2, ChevronRight, Clock, MessageSquareQuote, Newspaper, Scissors } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../auth/AuthContext';
 import { navegar } from '../../lib/router';
 import type { Articulo, Cita, PaginaSeo, ServicioDetalle } from '../../lib/tipos';
 import { Panel } from '../../components/ui/Formulario';
 import { revisarSeo } from '../../lib/seo';
+import { useTestimoniosPendientes } from '../../lib/pendientes';
 
 interface Alerta {
   texto: string;
@@ -20,6 +21,7 @@ export const Dashboard: React.FC = () => {
   const [servicios, setServicios] = useState<ServicioDetalle[] | null>(null);
   const [articulos, setArticulos] = useState<Articulo[] | null>(null);
   const [paginas, setPaginas] = useState<PaginaSeo[] | null>(null);
+  const testimoniosPendientes = useTestimoniosPendientes(puedeEditarContenido);
 
   useEffect(() => {
     api.get<Cita[]>('/api/citas').then((r) => setCitas(r.data)).catch(() => setCitas([]));
@@ -78,6 +80,23 @@ export const Dashboard: React.FC = () => {
           Revisar agenda <ArrowUpRight className="w-4 h-4" />
         </button>
       </div>
+
+      {testimoniosPendientes > 0 && (
+        <button
+          type="button"
+          onClick={() => navegar('testimonios')}
+          className="w-full flex items-center gap-4 p-5 rounded-3xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 text-left hover:border-amber-400 cursor-pointer"
+        >
+          <span className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0"><MessageSquareQuote className="w-5 h-5" /></span>
+          <span className="flex-1">
+            <span className="block font-bold text-slate-900 dark:text-white">
+              {testimoniosPendientes === 1 ? 'Un paciente dejó un testimonio' : `${testimoniosPendientes} testimonios nuevos de pacientes`}
+            </span>
+            <span className="block text-sm text-slate-600 dark:text-slate-300">No se muestran en la web hasta que los apruebe.</span>
+          </span>
+          <span className="text-sm font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">Revisar <ChevronRight className="w-4 h-4" /></span>
+        </button>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {tarjeta('Citas hoy', citas ? citasHoy.length : null, <CalendarCheck className="w-5 h-5" />, 'Sin contar canceladas', 'citas')}

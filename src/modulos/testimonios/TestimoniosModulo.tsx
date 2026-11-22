@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { Check, Eye, EyeOff, Globe, Pencil, Phone, Plus, Star, Trash2, X } from 'lucide-react';
 import { api, mensajeError } from '../../lib/api';
 import { useCatalogos, useDatos } from '../../lib/datos';
 import { formatearFecha } from '../../lib/texto';
+import { avisarCambioTestimonios } from '../../lib/pendientes';
 import type { Testimonio, TestimonioGuardar } from '../../lib/tipos';
 import { AreaTexto, Boton, Campo, EncabezadoPagina, Etiqueta, Interruptor, MensajeError, Panel, Selector } from '../../components/ui/Formulario';
 import { useAvisos } from '../../components/ui/Avisos';
@@ -22,6 +23,7 @@ export const TestimoniosModulo: React.FC = () => {
     try {
       await fn();
       avisos.exito(exito);
+      avisarCambioTestimonios();
       await recargar();
     } catch (e) {
       avisos.error(mensajeError(e));
@@ -38,6 +40,7 @@ export const TestimoniosModulo: React.FC = () => {
       avisos.exito('Testimonio guardado.');
       setForm(null);
       setEditandoId(null);
+      avisarCambioTestimonios();
       await recargar();
     } catch (err) {
       avisos.error(mensajeError(err, 'No se pudo guardar.'));
@@ -46,11 +49,74 @@ export const TestimoniosModulo: React.FC = () => {
     }
   };
 
+  const pendientes = (datos ?? []).filter((t) => t.pendienteRevision);
+  const revisados = (datos ?? []).filter((t) => !t.pendienteRevision);
+
+  const editar = (t: Testimonio) => {
+    setEditandoId(t.id);
+    setForm({ nombrePaciente: t.nombrePaciente, procedimiento: t.procedimiento, idServicioMedico: t.idServicioMedico ?? null, calificacionEstrellas: t.calificacionEstrellas, comentario: t.comentario, aprobadoParaWeb: t.aprobadoParaWeb, fechaTestimonio: t.fechaTestimonio });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const tarjeta = (t: Testimonio) => {
+    const pendiente = !!t.pendienteRevision;
+    const borde = pendiente
+      ? 'border-amber-300 dark:border-amber-500/40 ring-1 ring-amber-200/60 dark:ring-amber-500/20'
+      : t.aprobadoParaWeb ? 'border-slate-200 dark:border-white/10' : 'border-dashed border-slate-300 dark:border-white/20 opacity-80';
+    return (
+      <div key={t.id} className={`bg-white dark:bg-navy-900/60 border rounded-2xl p-5 ${borde}`}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-slate-900 dark:text-white">{t.nombrePaciente}</span>
+              {pendiente ? <Etiqueta color="ambar">Por revisar</Etiqueta> : t.aprobadoParaWeb ? <Etiqueta color="verde">Publicado</Etiqueta> : <Etiqueta>Oculto</Etiqueta>}
+              {t.enviadoDesdeWeb && <Etiqueta color="azul"><Globe className="w-3 h-3" /> Desde la web</Etiqueta>}
+            </div>
+            <div className="text-xs text-medical-600 dark:text-medical-400 mt-0.5">{t.procedimiento} · {formatearFecha(t.fechaTestimonio)}</div>
+          </div>
+          <div className="flex shrink-0" aria-label={`${t.calificacionEstrellas} de 5 estrellas`}>
+            {Array.from({ length: t.calificacionEstrellas }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}
+          </div>
+        </div>
+        <p className="mt-3 text-sm italic text-slate-600 dark:text-slate-300">“{t.comentario}”</p>
+        {t.enviadoDesdeWeb && (
+          <div className="mt-3 text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
+            {t.contactoPaciente && <p className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" /> Contacto (no se publica): <span className="font-semibold text-slate-700 dark:text-slate-200">{t.contactoPaciente}</span></p>}
+            {t.autorizaPublicacion && <p className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> El paciente autorizó publicarlo con su nombre.</p>}
+          </div>
+        )}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {pendiente ? (
+            <>
+              <Boton icono={<Check className="w-4 h-4" />} onClick={() => accion(() => api.put(`/api/admin/testimonios/${t.id}/aprobacion?aprobado=true`), 'Testimonio aprobado: ya se ve en la web.')}>
+                Aprobar y publicar
+              </Boton>
+              <Boton variante="fantasma" icono={<Pencil className="w-4 h-4" />} onClick={() => editar(t)}>Editar</Boton>
+              <Boton variante="peligro" icono={<X className="w-4 h-4" />} onClick={() => {
+                if (window.confirm(`¿Rechazar el testimonio de ${t.nombrePaciente}? Se eliminará y no se publicará.`)) void accion(() => api.delete(`/api/admin/testimonios/${t.id}`), 'Testimonio rechazado.');
+              }}>Rechazar</Boton>
+            </>
+          ) : (
+            <>
+              <Boton variante="secundario" icono={t.aprobadoParaWeb ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />} onClick={() => accion(() => api.put(`/api/admin/testimonios/${t.id}/aprobacion?aprobado=${!t.aprobadoParaWeb}`), t.aprobadoParaWeb ? 'Testimonio ocultado.' : 'Testimonio publicado.')}>
+                {t.aprobadoParaWeb ? 'Ocultar' : 'Publicar'}
+              </Boton>
+              <Boton variante="fantasma" icono={<Pencil className="w-4 h-4" />} onClick={() => editar(t)}>Editar</Boton>
+              <Boton variante="fantasma" icono={<Trash2 className="w-4 h-4" />} onClick={() => {
+                if (window.confirm(`¿Eliminar el testimonio de ${t.nombrePaciente}?`)) void accion(() => api.delete(`/api/admin/testimonios/${t.id}`), 'Testimonio eliminado.');
+              }}>Eliminar</Boton>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <EncabezadoPagina
         titulo="Testimonios"
-        descripcion="Publique solo testimonios reales y con autorización del paciente."
+        descripcion="Los pacientes pueden dejar su opinión desde la web; usted decide cuáles se publican. También puede agregarlos a mano."
         acciones={!form && <Boton icono={<Plus className="w-4 h-4" />} onClick={() => { setForm(VACIO); setEditandoId(null); }}>Nuevo testimonio</Boton>}
       />
 
@@ -86,38 +152,20 @@ export const TestimoniosModulo: React.FC = () => {
       {error && <MensajeError mensaje={error} reintentar={recargar} />}
       {cargando && !datos && <LoadingFallback texto="Cargando testimonios..." />}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {(datos ?? []).map((t) => (
-          <div key={t.id} className={`bg-white dark:bg-navy-900/60 border rounded-2xl p-5 ${t.aprobadoParaWeb ? 'border-slate-200 dark:border-white/10' : 'border-dashed border-slate-300 dark:border-white/20 opacity-80'}`}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-900 dark:text-white">{t.nombrePaciente}</span>
-                  {t.aprobadoParaWeb ? <Etiqueta color="verde">Publicado</Etiqueta> : <Etiqueta>Oculto</Etiqueta>}
-                </div>
-                <div className="text-xs text-medical-600 dark:text-medical-400 mt-0.5">{t.procedimiento} · {formatearFecha(t.fechaTestimonio)}</div>
-              </div>
-              <div className="flex">
-                {Array.from({ length: t.calificacionEstrellas }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}
-              </div>
-            </div>
-            <p className="mt-3 text-sm italic text-slate-600 dark:text-slate-300">“{t.comentario}”</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Boton variante="secundario" icono={t.aprobadoParaWeb ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />} onClick={() => accion(() => api.put(`/api/admin/testimonios/${t.id}/aprobacion?aprobado=${!t.aprobadoParaWeb}`), t.aprobadoParaWeb ? 'Testimonio ocultado.' : 'Testimonio publicado.')}>
-                {t.aprobadoParaWeb ? 'Ocultar' : 'Publicar'}
-              </Boton>
-              <Boton variante="fantasma" icono={<Pencil className="w-4 h-4" />} onClick={() => {
-                setEditandoId(t.id);
-                setForm({ nombrePaciente: t.nombrePaciente, procedimiento: t.procedimiento, idServicioMedico: t.idServicioMedico ?? null, calificacionEstrellas: t.calificacionEstrellas, comentario: t.comentario, aprobadoParaWeb: t.aprobadoParaWeb, fechaTestimonio: t.fechaTestimonio });
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}>Editar</Boton>
-              <Boton variante="fantasma" icono={<Trash2 className="w-4 h-4" />} onClick={() => {
-                if (window.confirm(`¿Eliminar el testimonio de ${t.nombrePaciente}?`)) void accion(() => api.delete(`/api/admin/testimonios/${t.id}`), 'Testimonio eliminado.');
-              }}>Eliminar</Boton>
-            </div>
-          </div>
-        ))}
-      </div>
+      {pendientes.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1">Por revisar ({pendientes.length})</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+            Los enviaron pacientes desde la web. No se muestran hasta que los apruebe. Puede editarlos antes (por ejemplo, para corregir ortografía).
+          </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">{pendientes.map(tarjeta)}</div>
+        </section>
+      )}
+
+      {pendientes.length > 0 && revisados.length > 0 && (
+        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Publicados y ocultos</h2>
+      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">{revisados.map(tarjeta)}</div>
       {datos && datos.length === 0 && <p className="py-12 text-center text-sm text-slate-500">Aún no hay testimonios.</p>}
     </div>
   );

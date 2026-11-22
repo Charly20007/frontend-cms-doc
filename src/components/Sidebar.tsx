@@ -2,6 +2,7 @@ import React from 'react';
 import { LayoutDashboard, CalendarCheck, Scissors, MessageSquareQuote, ShieldCheck, LogOut, Sun, Moon, Newspaper, Search, Settings, ExternalLink, Scale } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { navegar, WEB_URL } from '../lib/router';
+import { useTestimoniosPendientes } from '../lib/pendientes';
 
 export type Seccion = 'dashboard' | 'citas' | 'procedimientos' | 'blog' | 'testimonios' | 'legales' | 'seo' | 'configuracion';
 
@@ -46,6 +47,8 @@ const GRUPOS: { titulo: string; items: Item[] }[] = [
 
 export const Sidebar: React.FC<SidebarProps> = ({ activa, darkMode, onToggleTheme }) => {
   const { usuario, puedeEditarContenido, cerrarSesion } = useAuth();
+  const testimoniosPendientes = useTestimoniosPendientes(puedeEditarContenido);
+  const avisos: Partial<Record<Seccion, number>> = { testimonios: testimoniosPendientes };
   const iniciales = (usuario?.nombreCompleto ?? 'U').replace(/^Dr\.?\s*/i, '').split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase();
 
   return (
@@ -72,6 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activa, darkMode, onToggleThem
                 <div className="px-3 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-widest">{grupo.titulo}</div>
                 {items.map((item) => {
                   const activo = activa === item.id;
+                  const aviso = avisos[item.id] ?? 0;
                   return (
                     <button
                       key={item.id}
@@ -85,7 +89,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ activa, darkMode, onToggleThem
                       }`}
                     >
                       <span className={activo ? 'text-white' : 'text-slate-400'}>{item.icon}</span>
-                      <span>{item.label}</span>
+                      <span className="flex-1 text-left">{item.label}</span>
+                      {aviso > 0 && (
+                        <span
+                          title={`${aviso} por revisar`}
+                          className={`min-w-5 h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${activo ? 'bg-white text-medical-700' : 'bg-amber-500 text-white'}`}
+                        >
+                          {aviso}
+                        </span>
+                      )}
                     </button>
                   );
                 })}

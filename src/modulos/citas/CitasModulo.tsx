@@ -6,6 +6,7 @@ import type { Cita } from '../../lib/tipos';
 import { Boton, EncabezadoPagina, MensajeError } from '../../components/ui/Formulario';
 import { useAvisos } from '../../components/ui/Avisos';
 import { LoadingFallback } from '../../components/LoadingFallback';
+import { BloqueosPanel } from './BloqueosPanel';
 
 const ESTADOS = ['Pendiente', 'Confirmada', 'Atendida', 'Cancelada'] as const;
 type Filtro = 'proximas' | 'todas' | (typeof ESTADOS)[number];
@@ -51,9 +52,11 @@ export const CitasModulo: React.FC = () => {
     <div>
       <EncabezadoPagina
         titulo="Agenda y citas"
-        descripcion="Solicitudes que llegan desde el formulario de la web."
+        descripcion="Turnos reservados desde la web. Una cita pendiente o confirmada ocupa su turno; al cancelarla, el turno vuelve a quedar libre."
         acciones={<Boton variante="secundario" icono={<RefreshCw className={`w-4 h-4 ${cargando ? 'animate-spin' : ''}`} />} onClick={recargar}>Actualizar</Boton>}
       />
+
+      <BloqueosPanel />
 
       <div className="bg-white dark:bg-navy-900/60 border border-slate-200 dark:border-white/10 p-4 rounded-2xl flex flex-col lg:flex-row items-center justify-between gap-4 mb-4">
         <div className="flex flex-wrap gap-2">

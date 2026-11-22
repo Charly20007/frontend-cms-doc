@@ -127,9 +127,16 @@ export interface Testimonio {
   comentario: string;
   fechaTestimonio: string;
   aprobadoParaWeb: boolean;
+  /** Lo envió un paciente desde la web */
+  enviadoDesdeWeb?: boolean;
+  /** Enviado desde la web y aún sin revisar */
+  pendienteRevision?: boolean;
+  autorizaPublicacion?: boolean;
+  /** Teléfono o correo del paciente para verificarlo. Nunca se publica. */
+  contactoPaciente?: string | null;
 }
 
-export type TestimonioGuardar = Omit<Testimonio, 'id' | 'procedimientoSlug' | 'fechaTestimonio'> & { fechaTestimonio?: string | null };
+export type TestimonioGuardar = Pick<Testimonio, 'nombrePaciente' | 'procedimiento' | 'idServicioMedico' | 'calificacionEstrellas' | 'comentario' | 'aprobadoParaWeb'> & { fechaTestimonio?: string | null };
 
 export interface PaginaSeo {
   id: number;
@@ -189,6 +196,10 @@ export interface Configuracion {
   descripcionPie?: string | null;
   mostrarEmergencias: boolean;
   textoEmergencias?: string | null;
+  reservasOnlineActivas: boolean;
+  duracionTurnoMinutos: number;
+  anticipacionMinimaHoras: number;
+  diasMaximosReserva: number;
   horarios: Horario[];
 }
 
@@ -229,4 +240,11 @@ export interface Catalogos {
   categoriasBlog: ItemCatalogo[];
   estadosCita: ItemCatalogo[];
   servicios: ItemCatalogo[];
+}
+
+export interface Bloqueo {
+  id: number;
+  fechaInicio: string;
+  fechaFin: string;
+  motivo: string;
 }

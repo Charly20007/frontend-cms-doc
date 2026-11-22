@@ -208,6 +208,32 @@ export const ConfiguracionModulo: React.FC = () => {
               <button type="button" onClick={() => cambiarHorarios([...horarios, { diaSemana: 1, horaInicio: '09:00', horaFin: '13:00' }])} className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-medical-600 hover:underline cursor-pointer">
                 <Plus className="w-4 h-4" /> Agregar tramo
               </button>
+              <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10 space-y-5">
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Reservas en línea</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    La web divide estos horarios en turnos y muestra al paciente solo los libres. Un turno reservado (pendiente o confirmado) ya no se ofrece a nadie más.
+                    Para vacaciones o días de quirófano use <a href="#/citas" className="font-semibold text-medical-600 hover:underline">Agenda → Bloquear horario</a>.
+                  </p>
+                </div>
+                <Interruptor
+                  etiqueta="Permitir reservas desde la web"
+                  descripcion={config.reservasOnlineActivas ? 'Los pacientes eligen un turno libre.' : 'El formulario pedirá llamar al consultorio.'}
+                  activo={config.reservasOnlineActivas}
+                  onCambio={(v) => cambiar({ reservasOnlineActivas: v })}
+                />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <Selector
+                    etiqueta="Duración de cada turno"
+                    value={config.duracionTurnoMinutos}
+                    onChange={(e) => cambiar({ duracionTurnoMinutos: Number(e.target.value) })}
+                    opciones={[15, 20, 30, 40, 45, 60].map((m) => ({ valor: m, texto: `${m} minutos` }))}
+                  />
+                  <Campo etiqueta="Anticipación mínima (horas)" type="number" min={0} max={168} value={config.anticipacionMinimaHoras} onChange={(e) => cambiar({ anticipacionMinimaHoras: Number(e.target.value) })} ayuda="Ej.: 2 = no se puede reservar para dentro de menos de 2 horas." />
+                  <Campo etiqueta="Reservar hasta (días)" type="number" min={1} max={180} value={config.diasMaximosReserva} onChange={(e) => cambiar({ diasMaximosReserva: Number(e.target.value) })} ayuda="Cuántos días hacia adelante se muestran turnos." />
+                </div>
+              </div>
+
               <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
                 <Campo etiqueta="Seguros aliados" maxLength={200} {...campo('segurosAliados')} placeholder="Pacífico, Rímac, Mapfre..." ayuda="Aparecen en la franja de confianza de la portada y en el perfil del doctor." />
               </div>
