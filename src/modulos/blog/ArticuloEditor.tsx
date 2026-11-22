@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Code, ExternalLink, Eye, Save, Trash2 } from 'lucide-react';
+import { ExternalLink, Save, Trash2 } from 'lucide-react';
 import { api, mensajeError } from '../../lib/api';
 import { useCatalogos } from '../../lib/datos';
 import { navegar, WEB_URL } from '../../lib/router';
@@ -10,6 +10,7 @@ import { SeoEditor } from '../../components/seo/SeoEditor';
 import { SlugInput } from '../../components/seo/SlugInput';
 import { useAvisos } from '../../components/ui/Avisos';
 import { useDialogos } from '../../components/ui/Dialogos';
+import { EditorVisual } from '../../components/ui/EditorVisual';
 import { LoadingFallback } from '../../components/LoadingFallback';
 
 const VACIO: ArticuloGuardar = {
@@ -28,15 +29,6 @@ const aFormulario = (a: Articulo): ArticuloGuardar => ({
 /** "2026-07-02T00:00:00Z" → "2026-07-02" para <input type="date"> */
 const aFechaInput = (iso?: string | null) => (iso ? iso.slice(0, 10) : '');
 
-/** Atajos para insertar etiquetas HTML básicas en el contenido. */
-const ATAJOS: { texto: string; antes: string; despues: string }[] = [
-  { texto: 'Subtítulo', antes: '<h2>', despues: '</h2>' },
-  { texto: 'Párrafo', antes: '<p>', despues: '</p>' },
-  { texto: 'Negrita', antes: '<strong>', despues: '</strong>' },
-  { texto: 'Lista', antes: '<ul>\n  <li>', despues: '</li>\n</ul>' },
-  { texto: 'Enlace', antes: '<a href="/procedimientos/">', despues: '</a>' },
-];
-
 export const ArticuloEditor: React.FC<{ id: number | null }> = ({ id }) => {
   const avisos = useAvisos();
   const { confirmar } = useDialogos();
@@ -45,9 +37,7 @@ export const ArticuloEditor: React.FC<{ id: number | null }> = ({ id }) => {
   const [original, setOriginal] = useState<Articulo | null>(null);
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
-  const [vistaPrevia, setVistaPrevia] = useState(false);
   const [sucio, setSucio] = useState(false);
-  const areaRef = React.useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -70,15 +60,6 @@ export const ArticuloEditor: React.FC<{ id: number | null }> = ({ id }) => {
   const volver = async () => {
     if (sucio && !(await confirmar({ titulo: 'Hay cambios sin guardar', mensaje: 'Si sales ahora, se perderán los cambios que hiciste.', textoAceptar: 'Salir sin guardar', textoCancelar: 'Seguir editando', peligro: true }))) return;
     navegar('blog');
-  };
-
-  const insertar = (antes: string, despues: string) => {
-    const area = areaRef.current;
-    if (!area) return;
-    const { selectionStart: i, selectionEnd: f, value } = area;
-    const nuevo = value.slice(0, i) + antes + value.slice(i, f) + despues + value.slice(f);
-    cambiar({ contenidoHtml: nuevo });
-    requestAnimationFrame(() => { area.focus(); area.setSelectionRange(i + antes.length, f + antes.length); });
   };
 
   const palabras = form.contenidoHtml.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
@@ -159,36 +140,9 @@ export const ArticuloEditor: React.FC<{ id: number | null }> = ({ id }) => {
           <Panel
             titulo="Contenido"
             descripcion={`${palabras} palabras · ~${Math.max(1, Math.ceil(palabras / 200))} min de lectura. Se recomiendan más de 600 palabras para posicionar.`}
-            acciones={
-              <Boton variante="secundario" icono={vistaPrevia ? <Code className="w-4 h-4" /> : <Eye className="w-4 h-4" />} onClick={() => setVistaPrevia((v) => !v)}>
-                {vistaPrevia ? 'Editar HTML' : 'Vista previa'}
-              </Boton>
-            }
           >
-            {vistaPrevia ? (
-              // Vista previa del HTML escrito por el propio administrador
-              <div className="prose-cms max-w-none text-slate-700 dark:text-slate-300 min-h-[20rem]" dangerouslySetInnerHTML={{ __html: form.contenidoHtml }} />
-            ) : (
-              <>
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {ATAJOS.map((a) => (
-                    <button key={a.texto} type="button" onClick={() => insertar(a.antes, a.despues)} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-medical-500/10 hover:text-medical-600 cursor-pointer">
-                      {a.texto}
-                    </button>
-                  ))}
-                </div>
-                <textarea
-                  ref={areaRef}
-                  aria-label="Contenido HTML"
-                  value={form.contenidoHtml}
-                  onChange={(e) => cambiar({ contenidoHtml: e.target.value })}
-                  rows={22}
-                  className="w-full font-mono text-xs bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-white/10 rounded-xl p-4 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-medical-500"
-                  placeholder={"<h2>Subtítulo</h2>\n<p>Texto del artículo...</p>"}
-                />
-                <p className="text-[11px] text-slate-500 mt-1">Use subtítulos (Subtítulo = H2) con preguntas y enlace a la página del procedimiento relacionado.</p>
-              </>
-            )}
+            <EditorVisual valor={form.contenidoHtml} onCambio={(html) => cambiar({ contenidoHtml: html })} />
+            <p className="text-[11px] text-slate-500 mt-1">Usa subtítulos con las preguntas que haría un paciente y enlaza la página del procedimiento relacionado. Puedes pegar texto desde Word o Google Docs.</p>
           </Panel>
 
           <SeoEditor

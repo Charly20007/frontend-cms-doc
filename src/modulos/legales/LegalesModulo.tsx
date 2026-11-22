@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Code, ExternalLink, Eye, FileText, Save } from 'lucide-react';
+import { ExternalLink, FileText, Save } from 'lucide-react';
 import { api, mensajeError } from '../../lib/api';
 import { useDatos } from '../../lib/datos';
 import { navegar, WEB_URL } from '../../lib/router';
@@ -9,6 +9,7 @@ import { Boton, Campo, EncabezadoPagina, Etiqueta, Interruptor, MensajeError, Pa
 import { SeoEditor } from '../../components/seo/SeoEditor';
 import { useAvisos } from '../../components/ui/Avisos';
 import { useDialogos } from '../../components/ui/Dialogos';
+import { EditorVisual } from '../../components/ui/EditorVisual';
 import { LoadingFallback } from '../../components/LoadingFallback';
 
 const AVISO_LEGAL = 'Estos textos son una base general. Revíselos con un asesor legal antes de publicar la web.';
@@ -45,7 +46,6 @@ export const LegalEditor: React.FC<{ clave: string }> = ({ clave }) => {
   const [pagina, setPagina] = useState<PaginaLegal | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
-  const [vistaPrevia, setVistaPrevia] = useState(false);
   const [sucio, setSucio] = useState(false);
 
   useEffect(() => {
@@ -101,21 +101,8 @@ export const LegalEditor: React.FC<{ clave: string }> = ({ clave }) => {
         </div>
       </Panel>
 
-      <Panel
-        titulo="Contenido"
-        acciones={<Boton variante="secundario" icono={vistaPrevia ? <Code className="w-4 h-4" /> : <Eye className="w-4 h-4" />} onClick={() => setVistaPrevia((v) => !v)}>{vistaPrevia ? 'Editar HTML' : 'Vista previa'}</Boton>}
-      >
-        {vistaPrevia ? (
-          <div className="prose-cms max-w-none text-slate-700 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: pagina.contenidoHtml }} />
-        ) : (
-          <textarea
-            aria-label="Contenido HTML"
-            value={pagina.contenidoHtml}
-            onChange={(e) => cambiar({ contenidoHtml: e.target.value })}
-            rows={24}
-            className="w-full font-mono text-xs bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-white/10 rounded-xl p-4 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-medical-500"
-          />
-        )}
+      <Panel titulo="Contenido">
+        <EditorVisual valor={pagina.contenidoHtml} onCambio={(html) => cambiar({ contenidoHtml: html })} alturaMinima="26rem" />
       </Panel>
 
       <SeoEditor seo={pagina.seo} onCambio={(seo) => cambiar({ seo })} ruta={pagina.ruta} tituloRespaldo={pagina.titulo} descripcionRespaldo={pagina.titulo} />
