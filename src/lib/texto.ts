@@ -44,3 +44,13 @@ export function agruparHorarios(horarios: { diaSemana: number; horaInicio: strin
   }
   return grupos.map((g) => ({ dias: g.desde === g.hasta ? DIAS_SEMANA[g.desde] : `${DIAS_SEMANA[g.desde]} - ${DIAS_SEMANA[g.hasta]}`, horas: g.horas }));
 }
+
+/**
+ * Enlace a la web de una clínica que, al abrirse, baja hasta el nombre del doctor y lo resalta
+ * (fragmento de texto «#:~:text=», compatible con Chrome, Edge, Safari y Firefox recientes).
+ */
+export const enlaceClinica = (url: string, texto?: string | null) => {
+  const limpio = url.trim();
+  if (!texto?.trim() || limpio.includes('#')) return limpio;
+  return `${limpio}#:~:text=${encodeURIComponent(texto.trim())}`;
+};

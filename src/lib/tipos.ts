@@ -206,6 +206,11 @@ export interface Configuracion {
   duracionTurnoMinutos: number;
   anticipacionMinimaHoras: number;
   diasMaximosReserva: number;
+  reservaClinicaActiva: boolean;
+  reservaClinicaNombre?: string | null;
+  reservaClinicaUrl?: string | null;
+  reservaClinicaTelefono?: string | null;
+  reservaClinicaTextoBusqueda?: string | null;
   horarios: Horario[];
 }
 

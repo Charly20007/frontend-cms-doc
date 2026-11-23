@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, Globe, KeyRound, MapPin, PanelBottom, Phone, Plus, Save, Share2, Trash2, UserRound } from 'lucide-react';
+import { Clock, ExternalLink, Globe, KeyRound, MapPin, PanelBottom, Phone, Plus, Save, Share2, Trash2, UserRound } from 'lucide-react';
 import { api, mensajeError } from '../../lib/api';
 import { invalidarCaches } from '../../lib/datos';
 import { WEB_URL } from '../../lib/router';
-import { formatearTelefono } from '../../lib/texto';
+import { enlaceClinica, formatearTelefono } from '../../lib/texto';
 import type { Configuracion, Horario } from '../../lib/tipos';
 import { AreaTexto, Boton, Campo, Interruptor, MensajeError, Selector } from '../../components/ui/Formulario';
 import { SEO_LIMITES } from '../../lib/seo';
@@ -232,6 +232,55 @@ export const ConfiguracionModulo: React.FC = () => {
                   <Campo etiqueta="Anticipación mínima (horas)" type="number" min={0} max={168} value={config.anticipacionMinimaHoras} onChange={(e) => cambiar({ anticipacionMinimaHoras: Number(e.target.value) })} ayuda="Ej.: 2 = no se puede reservar para dentro de menos de 2 horas." />
                   <Campo etiqueta="Reservar hasta (días)" type="number" min={1} max={180} value={config.diasMaximosReserva} onChange={(e) => cambiar({ diasMaximosReserva: Number(e.target.value) })} ayuda="Cuántos días hacia adelante se muestran turnos." />
                 </div>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10 space-y-5">
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Reservar en una clínica</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Al pulsar «Agendar cita», el paciente podrá elegir entre el consultorio y la clínica (por ejemplo, SANNA). La web de la clínica se abre en otra pestaña.
+                  </p>
+                </div>
+                <Interruptor
+                  etiqueta="Ofrecer reserva en la clínica"
+                  descripcion={config.reservaClinicaActiva ? 'El paciente elige dónde atenderse.' : 'Solo se ofrece el consultorio.'}
+                  activo={config.reservaClinicaActiva}
+                  onCambio={(v) => cambiar({ reservaClinicaActiva: v })}
+                />
+                {config.reservaClinicaActiva && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <Campo etiqueta="Nombre de la clínica" maxLength={100} {...campo('reservaClinicaNombre')} placeholder="Clínica SANNA San Borja" />
+                    <Campo etiqueta="Central telefónica" maxLength={30} {...campo('reservaClinicaTelefono')} placeholder="(01) 635-5000" />
+                    <div className="md:col-span-2">
+                      <Campo
+                        etiqueta="Enlace de la clínica"
+                        maxLength={1000}
+                        {...campo('reservaClinicaUrl')}
+                        placeholder="https://www.sanna.pe/medicos/8/4/"
+                        ayuda="Página de la clínica donde aparece el doctor. En SANNA, /medicos/8/4/ es Clínica San Borja + Cirugía General."
+                      />
+                    </div>
+                    <Campo
+                      etiqueta="Nombre a resaltar"
+                      maxLength={100}
+                      {...campo('reservaClinicaTextoBusqueda')}
+                      placeholder="Marcos Enriquez"
+                      ayuda="Tal como aparece en la web de la clínica. El navegador baja hasta ese nombre y lo resalta."
+                    />
+                    {config.reservaClinicaUrl && (
+                      <div className="flex items-end pb-6">
+                        <a
+                          href={enlaceClinica(config.reservaClinicaUrl, config.reservaClinicaTextoBusqueda)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm font-bold text-medical-600 hover:underline"
+                        >
+                          <ExternalLink className="w-4 h-4" /> Probar el enlace
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
